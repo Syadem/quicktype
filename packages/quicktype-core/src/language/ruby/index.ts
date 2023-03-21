@@ -407,7 +407,7 @@ export class RubyRenderer extends ConvenienceRenderer {
                 const last = --count === 0;
                 const description = this.descriptionForClassProperty(c, jsonName);
                 const attribute = [
-                    ["attribute :", name, ","],
+                    [`attribute${p.isOptional ? '?' : '' } :`, name, ","],
                     [" ", this.dryType(p.type), p.isOptional ? ".optional" : ""]
                 ];
                 if (description !== undefined) {
