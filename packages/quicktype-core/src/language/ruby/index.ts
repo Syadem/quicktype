@@ -407,7 +407,7 @@ export class RubyRenderer extends ConvenienceRenderer {
                 const last = --count === 0;
                 const description = this.descriptionForClassProperty(c, jsonName);
                 const attribute = [
-                    ["attribute :", name, ","],
+                    [`attribute${p.isOptional ? '?' : '' } :`, name, ","],
                     [" ", this.dryType(p.type), p.isOptional ? ".optional" : ""]
                 ];
                 if (description !== undefined) {
@@ -435,38 +435,12 @@ export class RubyRenderer extends ConvenienceRenderer {
 
             this.ensureBlankLine();
             this.emitBlock(["def self.from_dynamic!(d)"], () => {
-                this.emitLine("d = Types::Hash[d]");
-                this.emitLine("new(");
-                this.indent(() => {
-                    const inits: Sourcelike[][] = [];
-                    this.forEachClassProperty(c, "none", (name, jsonName, p) => {
-                        const dynamic = p.isOptional
-                            ? // If key is not found in hash, this will be nil
-                              `d["${stringEscape(jsonName)}"]`
-                            : // This will raise a runtime error if the key is not found in the hash
-                              `d.fetch("${stringEscape(jsonName)}")`;
-
-                        if (this.propertyTypeMarshalsImplicitlyFromDynamic(p.type)) {
-                            inits.push([
-                                [name, ": "],
-                                [dynamic, ","]
-                            ]);
-                        } else {
-                            const expression = this.fromDynamic(p.type, dynamic, p.isOptional);
-                            inits.push([
-                                [name, ": "],
-                                [expression, ","]
-                            ]);
-                        }
-                    });
-                    this.emitTable(inits);
-                });
-                this.emitLine(")");
+                this.emitLine("new(d)");
             });
 
             this.ensureBlankLine();
             this.emitBlock("def self.from_json!(json)", () => {
-                this.emitLine("from_dynamic!(JSON.parse(json))");
+                this.emitLine("from_dynamic!(JSON.parse(json, symbolize_names: true))");
             });
 
             this.ensureBlankLine();
