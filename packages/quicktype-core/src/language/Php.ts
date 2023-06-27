@@ -2,7 +2,7 @@ import { anyTypeIssueAnnotation, nullTypeIssueAnnotation } from "../Annotation";
 import { ConvenienceRenderer, ForbiddenWordsInfo } from "../ConvenienceRenderer";
 import { DependencyName, funPrefixNamer, Name, Namer } from "../Naming";
 import { RenderContext } from "../Renderer";
-import { BooleanOption, getOptionValues, Option, OptionValues } from "../RendererOptions";
+import { BooleanOption, getOptionValues, Option, OptionValues, StringOption } from "../RendererOptions";
 import { maybeAnnotated, Sourcelike } from "../Source";
 import { acronymOption, acronymStyle, AcronymStyleOptions } from "../support/Acronyms";
 import {
@@ -31,7 +31,8 @@ export const phpOptions = {
     fastGet: new BooleanOption("fast-get", "getter without validation", false),
     withSet: new BooleanOption("with-set", "Create Setter", false),
     withClosing: new BooleanOption("with-closing", "PHP Closing Tag", false),
-    acronymStyle: acronymOption(AcronymStyleOptions.Pascal)
+    acronymStyle: acronymOption(AcronymStyleOptions.Pascal),
+    nameSpace: new StringOption("namespace", "Namespace", "", "secondary"),
 };
 
 export class PhpTargetLanguage extends TargetLanguage {
@@ -269,7 +270,7 @@ export class PhpRenderer extends ConvenienceRenderer {
             _stringType => optionalize("string"),
             _arrayType => optionalize("array"),
             classType => optionalize(this.nameForNamedType(classType)),
-            _mapType => optionalize("stdClass"),
+            _mapType => optionalize("\stdClass"),
             enumType => optionalize(this.nameForNamedType(enumType)),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -302,7 +303,7 @@ export class PhpRenderer extends ConvenienceRenderer {
             _stringType => "string",
             arrayType => [this.phpDocConvertType(className, arrayType.items), "[]"],
             _classType => _classType.getCombinedName(),
-            _mapType => "stdClass",
+            _mapType => "\stdClass",
             enumType => this.nameForNamedType(enumType),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -330,8 +331,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             _doubleType => "float",
             _stringType => "string",
             _arrayType => "array",
-            _classType => "stdClass",
-            _mapType => "stdClass",
+            _classType => "\stdClass",
+            _mapType => "\stdClass",
             _enumType => "string", // TODO number this.nameForNamedType(enumType),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -368,8 +369,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             },
             _classType => this.emitLine(...lhs, ...args, "->to(); ", "/*class*/"),
             mapType => {
-                this.emitBlock(["function to($my): stdClass"], () => {
-                    this.emitLine("$out = new stdClass();");
+                this.emitBlock(["function to($my): \stdClass"], () => {
+                    this.emitLine("$out = new \stdClass();");
                     this.emitBlock(["foreach ($my as $k => $v)"], () => {
                         this.phpToObjConvert(className, mapType.values, ["$my->$k = "], ["$v"]);
                     });
@@ -429,8 +430,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             classType =>
                 this.emitLine(...lhs, this.nameForNamedType(classType), "::from(", ...args, "); ", "/*class*/"),
             mapType => {
-                this.emitBlock(["function from($my): stdClass"], () => {
-                    this.emitLine("$out = new stdClass();");
+                this.emitBlock(["function from($my): \stdClass"], () => {
+                    this.emitLine("$out = new \stdClass();");
                     this.emitBlock(["foreach ($my as $k => $v)"], () => {
                         this.phpFromObjConvert(className, mapType.values, ["$out->$k = "], ["$v"]);
                     });
@@ -529,8 +530,8 @@ export class PhpRenderer extends ConvenienceRenderer {
                     "*/"
                 ),
             mapType => {
-                this.emitBlock(["function sample(): stdClass"], () => {
-                    this.emitLine("$out = new stdClass();");
+                this.emitBlock(["function sample(): \stdClass"], () => {
+                    this.emitLine("$out = new \stdClass();");
                     this.phpSampleConvert(className, mapType.values, ["$out->{'", className, "'} = "], args, idx, ";");
                     this.emitLine("return $out;");
                 });
@@ -823,13 +824,13 @@ export class PhpRenderer extends ConvenienceRenderer {
             this.emitBlock(
                 [
                     "/**\n",
-                    ` * @return stdClass\n`,
+                    ` * @return \stdClass\n`,
                     ` * @throws Exception\n`,
                     " */\n",
-                    "public function to(): stdClass "
+                    "public function to(): \stdClass "
                 ],
                 () => {
-                    this.emitLine("$out = new stdClass();");
+                    this.emitLine("$out = new \stdClass();");
                     this.forEachClassProperty(c, "none", (name, jsonName) => {
                         const names = defined(this._gettersAndSettersForPropertyName.get(name));
                         this.emitLine("$out->{'", jsonName, "'} = $this->", names.to, "();");
@@ -842,13 +843,13 @@ export class PhpRenderer extends ConvenienceRenderer {
             this.emitBlock(
                 [
                     "/**\n",
-                    ` * @param stdClass $obj\n`,
+                    ` * @param \stdClass $obj\n`,
                     ` * @return `,
                     className,
                     `\n`,
                     ` * @throws Exception\n`,
                     " */\n",
-                    "public static function from(stdClass $obj): ",
+                    "public static function from(\stdClass $obj): ",
                     className
                 ],
                 () => {
@@ -1012,6 +1013,10 @@ export class PhpRenderer extends ConvenienceRenderer {
 
     protected emitSourceStructure(givenFilename: string): void {
         this.emitLine("<?php");
+        if(this._options.nameSpace) {
+            this.emitLine("namespace ", this._options.nameSpace, ";");
+        }
+
         this.forEachNamedType(
             "leading-and-interposing",
             (c: ClassType, n: Name) => this.emitClassDefinition(c, n),
