@@ -862,7 +862,7 @@ export class PhpRenderer extends ConvenienceRenderer {
                     let comma = " ";
                     this.forEachClassProperty(c, "none", (name, jsonName) => {
                         const names = defined(this._gettersAndSettersForPropertyName.get(name));
-                        this.emitLine(comma, className, "::", names.from, "($obj->{'", jsonName, "'})");
+                        this.emitLine(comma, className, "::", names.from, "($obj->{'", jsonName, "'} ?? null)");
                         comma = ",";
                     });
                     this.emitLine(");");
