@@ -270,7 +270,7 @@ export class PhpRenderer extends ConvenienceRenderer {
             _stringType => optionalize("string"),
             _arrayType => optionalize("array"),
             classType => optionalize(this.nameForNamedType(classType)),
-            _mapType => optionalize("\stdClass"),
+            _mapType => optionalize("\\stdClass"),
             enumType => optionalize(this.nameForNamedType(enumType)),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -303,7 +303,7 @@ export class PhpRenderer extends ConvenienceRenderer {
             _stringType => "string",
             arrayType => [this.phpDocConvertType(className, arrayType.items), "[]"],
             _classType => _classType.getCombinedName(),
-            _mapType => "\stdClass",
+            _mapType => "\\stdClass",
             enumType => this.nameForNamedType(enumType),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -331,8 +331,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             _doubleType => "float",
             _stringType => "string",
             _arrayType => "array",
-            _classType => "\stdClass",
-            _mapType => "\stdClass",
+            _classType => "\\stdClass",
+            _mapType => "\\stdClass",
             _enumType => "string", // TODO number this.nameForNamedType(enumType),
             unionType => {
                 const nullable = nullableFromUnion(unionType);
@@ -369,8 +369,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             },
             _classType => this.emitLine(...lhs, ...args, "->to(); ", "/*class*/"),
             mapType => {
-                this.emitBlock(["function to($my): \stdClass"], () => {
-                    this.emitLine("$out = new \stdClass();");
+                this.emitBlock(["function to($my): \\stdClass"], () => {
+                    this.emitLine("$out = new \\stdClass();");
                     this.emitBlock(["foreach ($my as $k => $v)"], () => {
                         this.phpToObjConvert(className, mapType.values, ["$my->$k = "], ["$v"]);
                     });
@@ -430,8 +430,8 @@ export class PhpRenderer extends ConvenienceRenderer {
             classType =>
                 this.emitLine(...lhs, this.nameForNamedType(classType), "::from(", ...args, "); ", "/*class*/"),
             mapType => {
-                this.emitBlock(["function from($my): \stdClass"], () => {
-                    this.emitLine("$out = new \stdClass();");
+                this.emitBlock(["function from($my): \\stdClass"], () => {
+                    this.emitLine("$out = new \\stdClass();");
                     this.emitBlock(["foreach ($my as $k => $v)"], () => {
                         this.phpFromObjConvert(className, mapType.values, ["$out->$k = "], ["$v"]);
                     });
@@ -530,8 +530,8 @@ export class PhpRenderer extends ConvenienceRenderer {
                     "*/"
                 ),
             mapType => {
-                this.emitBlock(["function sample(): \stdClass"], () => {
-                    this.emitLine("$out = new \stdClass();");
+                this.emitBlock(["function sample(): \\stdClass"], () => {
+                    this.emitLine("$out = new \\stdClass();");
                     this.phpSampleConvert(className, mapType.values, ["$out->{'", className, "'} = "], args, idx, ";");
                     this.emitLine("return $out;");
                 });
@@ -824,13 +824,13 @@ export class PhpRenderer extends ConvenienceRenderer {
             this.emitBlock(
                 [
                     "/**\n",
-                    ` * @return \stdClass\n`,
+                    ` * @return \\stdClass\n`,
                     ` * @throws Exception\n`,
                     " */\n",
-                    "public function to(): \stdClass "
+                    "public function to(): \\stdClass "
                 ],
                 () => {
-                    this.emitLine("$out = new \stdClass();");
+                    this.emitLine("$out = new \\stdClass();");
                     this.forEachClassProperty(c, "none", (name, jsonName) => {
                         const names = defined(this._gettersAndSettersForPropertyName.get(name));
                         this.emitLine("$out->{'", jsonName, "'} = $this->", names.to, "();");
@@ -843,13 +843,13 @@ export class PhpRenderer extends ConvenienceRenderer {
             this.emitBlock(
                 [
                     "/**\n",
-                    ` * @param \stdClass $obj\n`,
+                    ` * @param \\stdClass $obj\n`,
                     ` * @return `,
                     className,
                     `\n`,
                     ` * @throws Exception\n`,
                     " */\n",
-                    "public static function from(\stdClass $obj): ",
+                    "public static function from(\\stdClass $obj): ",
                     className
                 ],
                 () => {
