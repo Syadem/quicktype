@@ -286,9 +286,6 @@ export class PhpRenderer extends ConvenienceRenderer {
                 if (transformedStringType.kind === "date-time") {
                     return "DateTime";
                 }
-                if (transformedStringType.kind === "uuid") {
-                    throw Error('transformedStringType.kind === "uuid"');
-                }
                 return "string";
             }
         );
