@@ -55,7 +55,7 @@ export class PhpTargetLanguage extends TargetLanguage {
 
     get stringTypeMapping(): StringTypeMapping {
         const mapping: Map<TransformedStringTypeKind, PrimitiveStringTypeKind> = new Map();
-        mapping.set("date", "date"); // TODO is not implemented yet
+        mapping.set("date", "string"); // TODO is not implemented yet
         mapping.set("time", "time"); // TODO is not implemented yet
         mapping.set("uuid", "string"); // TODO is not implemented yet
         mapping.set("date-time", "date-time");
@@ -280,9 +280,6 @@ export class PhpRenderer extends ConvenienceRenderer {
             transformedStringType => {
                 if (transformedStringType.kind === "time") {
                     throw Error('transformedStringType.kind === "time"');
-                }
-                if (transformedStringType.kind === "date") {
-                    throw Error('transformedStringType.kind === "date"');
                 }
                 if (transformedStringType.kind === "date-time") {
                     return "DateTime";
