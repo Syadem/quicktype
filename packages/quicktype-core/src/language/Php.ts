@@ -755,7 +755,7 @@ export class PhpRenderer extends ConvenienceRenderer {
         this.emitBlock(["class ", className], () => {
             this.forEachClassProperty(c, "none", (name, jsonName, p) => {
                 this.emitLine(
-                    "public ",
+                    "private ",
                     this.phpType(false, p.type),
                     " $",
                     name,
